@@ -9,5 +9,6 @@ except ImportError:
 
 setup(
     name='init',
-    version='0.1.0'
+    version='0.1.0',
+    scripts=['scripts/init']
 )

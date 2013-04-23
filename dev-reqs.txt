@@ -1,0 +1,6 @@
+# requirements for development
+
+nose
+nose-cov
+flake8
+terminal

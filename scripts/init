@@ -1,11 +1,25 @@
 #!/usr/bin/env python
+# coding: utf-8
 
 import sys
 import datetime
+import terminal
 from terminal.builtin import Command
 import init
 
-program = Command(
+
+class InitCommand(Command):
+    def print_help(self):
+        super(InitCommand, self).print_help()
+        print(terminal.cyan('  Examples:\n'))
+        print('    $ init flask')
+        print('    $ init lepture/template-flask')
+        print('')
+        url = 'https://github.com/init-template'
+        print('  Find templates on %s\n' % terminal.underline(url))
+
+
+program = InitCommand(
     'init',
     description='init a project',
     version=init.__version__
@@ -50,6 +64,16 @@ def license(year=None, organization=None):
 
 
 @program.action
+def install(name):
+    """
+    Install a template to ~/.init-template/
+
+    :param name: name of the template scaffold
+    """
+    pass
+
+
+@program.action
 def update(name=None):
     """
     Update templates in ~/.init-template/
@@ -57,18 +81,7 @@ def update(name=None):
     pass
 
 
-@program.action
-def install(name):
-    """
-    Install a template to ~/.init-template/
-
-    :param name: name of the template scaffold
-    """
-    if '/' in name:
-        url = 'git://github.com/%s' % name
-    else:
-        url = 'git://github.com/init-template/%s' % name
-    pass
-
-
-program.parse()
+try:
+    program.parse()
+except RuntimeError as e:
+    print('\n  %s\n' % e)

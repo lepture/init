@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import os
 from terminal.builtin import log
 from subprocess import Popen, PIPE
 
@@ -41,6 +42,9 @@ class Git(object):
         """
 
         ret = run('git remote -v', cwd=cwd)
+        if not ret:
+            return None
+
         lines = ret.splitlines()
 
         # remote named origin

@@ -10,7 +10,6 @@ import imp
 import shutil
 import datetime
 from terminal import color
-from terminal import prompt, confirm
 from terminal.builtin import log
 from . import license
 from .shell import Git
@@ -22,7 +21,7 @@ except ImportError:
     import json
 
 
-__all__ = ('install', 'init', 'templates', 'project_prompts')
+__all__ = ('install', 'init', 'templates')
 
 
 def install(name):
@@ -56,13 +55,6 @@ def init(name):
             # prompt for user, and get data from user
             # return data
     """
-    if os.listdir('.'):
-        q = confirm(
-            'This is not an empty directory, do you want to rewrite it'
-        )
-        if not q:
-            return
-
     log.info('loading', color.cyan(name))
 
     folder = os.path.join(TEMPLATE_DIR, name)
@@ -174,16 +166,6 @@ def process_rename(renames, data):
         else:
             log.info('renaming', c(k), 'to', c(v))
             shutil.move(k, v)
-
-
-def project_prompts():
-    dirname, name = os.path.split(os.getcwd())
-    # username = os.environ.get('USER') or os.environ.get('USERNAME')
-    return dict(
-        project=prompt('project name', default=name),
-        version=prompt('project version', default='0.1.0'),
-        license=prompt('project license', default='BSD3'),
-    )
 
 
 def _url(name):

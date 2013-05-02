@@ -63,8 +63,32 @@ class Git(object):
 
     @staticmethod
     def checkout(revision='HEAD', cwd=None):
-        pass
+        """
+        Checkout the git repo to a revision.
+        """
+        return run('git checkout %s' % revision, cwd=cwd)
 
     @staticmethod
-    def clone(url, dest):
-        pass
+    def clone(url, dest, depth=50):
+        """
+        Clone a git repo.
+        """
+        return run(
+            'git clone %s %s --recursive --depth %s' % (url, dest, depth)
+        )
+
+    @staticmethod
+    def name():
+        """
+        Name in Git config.
+        """
+        name = run('git config --get user.name')
+        return name.strip()
+
+    @staticmethod
+    def email():
+        """
+        Email in Git config.
+        """
+        email = run('git config --get user.email')
+        return email.strip()

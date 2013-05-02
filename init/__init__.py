@@ -1,1 +1,7 @@
-__version__ = '0.1.0'
+# coding: utf-8
+# flake8: noqa
+
+from . import info
+from terminal.prompt import *
+
+__version__ = info.VERSION

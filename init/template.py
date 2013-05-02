@@ -20,7 +20,7 @@ class Template(object):
             template = f.read()
             f.close()
 
-        if not template:
+        if template is None:
             raise ValueError('Template is required.')
 
         self.template = template
@@ -72,7 +72,7 @@ class Template(object):
         content = self.render(**kwargs)
 
         folder = os.path.dirname(filepath)
-        if not os.path.exists(folder):
+        if folder and not os.path.exists(folder):
             os.makedirs(folder)
 
         f = open(filepath, 'wb')

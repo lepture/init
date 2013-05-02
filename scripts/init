@@ -4,7 +4,7 @@
 import sys
 import datetime
 import terminal
-from terminal.builtin import Command
+from terminal.builtin import Command, log
 import init
 
 
@@ -24,6 +24,7 @@ program = InitCommand(
     description='init a project',
     version=init.__version__
 )
+program.add_log_options()
 
 
 @program.action
@@ -64,13 +65,15 @@ def license(year=None, organization=None):
 
 
 @program.action
-def install(name):
+def install():
     """
     Install a template to ~/.init-template/
-
-    :param name: name of the template scaffold
     """
-    pass
+    from init import core
+    if not program.args:
+        return log.error('missing arguments')
+    name = program.args[0]
+    return core.install(name)
 
 
 @program.action
@@ -85,3 +88,10 @@ try:
     program.parse()
 except RuntimeError as e:
     print('\n  %s\n' % e)
+
+if not program.args:
+    program.print_help()
+    sys.exit(0)
+else:
+    from init import core
+    core.init(program.args[0])

@@ -55,8 +55,11 @@ class Git(object):
         return lines[0].split()[1]
 
     @staticmethod
-    def pull(cwd=None):
-        pass
+    def pull(remote='origin', branch='master', cwd=None):
+        """
+        Pull a git repo.
+        """
+        return run('git pull %s %s' % (remote, branch), cwd=cwd)
 
     @staticmethod
     def checkout(revision='HEAD', cwd=None):

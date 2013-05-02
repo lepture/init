@@ -5,7 +5,8 @@ import sys
 import datetime
 import terminal
 from terminal.builtin import Command, log
-import init
+
+from init import cli, info
 
 
 class InitCommand(Command):
@@ -22,8 +23,16 @@ class InitCommand(Command):
 program = InitCommand(
     'init',
     description='init a project',
-    version=init.__version__
+    version=info.VERSION,
 )
+
+
+def show_templates():
+    ret = cli.templates()
+    print('\n'.join(ret))
+    sys.exit(0)
+
+program.option('-l, --list', 'show available templates', action=show_templates)
 program.add_log_options()
 
 
@@ -69,11 +78,10 @@ def install():
     """
     Install a template to ~/.init-template/
     """
-    from init import core
     if not program.args:
         return log.error('missing arguments')
     name = program.args[0]
-    return core.install(name)
+    return cli.install(name)
 
 
 @program.action
@@ -93,5 +101,4 @@ if not program.args:
     program.print_help()
     sys.exit(0)
 else:
-    from init import core
-    core.init(program.args[0])
+    cli.init(program.args[0])

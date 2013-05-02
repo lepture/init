@@ -5,6 +5,8 @@ from .template import Template
 
 LICEDIR = os.path.join(os.path.dirname(__file__), 'licenses')
 
+__all__ = ('read', 'licenses', 'parse')
+
 
 def read(name):
     """

@@ -85,17 +85,29 @@ def install():
 
 
 @program.action
-def update(name=None):
+def update():
     """
     Update templates in ~/.init-template/
     """
-    pass
+    if program.args:
+        names = program.args
+    else:
+        names = cli.templates()
+    for name in names:
+        log.info('update', terminal.cyan(name))
+        try:
+            cli.install(name)
+        except RuntimeError as e:
+            log.error(e)
+
+    sys.exit(0)
 
 
 try:
     program.parse()
 except RuntimeError as e:
     print('\n  %s\n' % e)
+    sys.exit(1)
 
 if not program.args:
     program.print_help()

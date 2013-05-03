@@ -3,28 +3,42 @@
 # prompts for common tasks
 
 import os
-import sys
 import re
-from terminal import prompt, confirm
-from .shell import Git
+from terminal import prompt
+from . import git
+
+
+def defaults():
+    _, project = os.path.split(os.getcwd())
+    username = os.environ.get('USER') or os.environ.get('USERNAME')
+
+    repository = git.origin()
+    if not repository:
+        repository = 'git://github.com/%s/%s.git' % (username, project)
+
+    author_name = git.name()
+    author_email = git.email()
+    return dict(
+        project=project,
+        username=username,
+        repository=repository,
+        author_name=author_name,
+        author_email=author_email,
+    )
 
 
 def python():
-    if os.path.exists('setup.py'):
-        q = confirm(
-            'This is not an empty directory, do you want to rewrite it'
-        )
-        if not q:
-            return sys.exit(2)
+    data = defaults()
 
-    name = _parse_name()
-    project = prompt('Project name', default=name)
+    project = prompt('Project name', default=data['project'])
+    description = prompt('Description', default='The best python module')
     version = prompt('Version', default='0.1.0')
-    author_name = prompt('Author name', default=Git.name())
-    author_email = prompt('Author email', default=Git.email())
+    author_name = prompt('Author name', default=data['author_name'])
+    author_email = prompt('Author email', default=data['author_email'])
     license = prompt('License', default='BSD3')
     return dict(
         project=project,
+        description=description,
         version=version,
         author_name=author_name,
         author_email=author_email,
@@ -33,30 +47,19 @@ def python():
 
 
 def nodejs():
-    if os.path.exists('package.json'):
-        q = confirm(
-            'This is not an empty directory, do you want to rewrite it'
-        )
-        if not q:
-            return sys.exit(2)
+    data = defaults()
 
-    name = _parse_name()
-    username = _parse_username()
-    repo = Git.origin()
-    if not repo:
-        repo = 'git://github.com/%s/%s.git' % (username, name)
-
-    project = prompt('Project name', default=name)
-    description = prompt('Description', default=name)
+    project = prompt('Project name', default=data['project'])
+    description = prompt('Description', default='The best node module')
     version = prompt('Version', default='0.1.0')
-    repository = prompt('Git repository', default=repo)
+    repository = prompt('Git repository', default=data['repository'])
 
     home = _parse_homepage(repository)
     homepage = prompt('Homepage', default=home)
 
     issues = prompt('Issue tracker', default='%/issues' % home)
-    author_name = prompt('Author name', default=Git.name())
-    author_email = prompt('Author email', default=Git.email())
+    author_name = prompt('Author name', default=data['author_name'])
+    author_email = prompt('Author email', default=data['author_email'])
 
     license = prompt('License', default='MIT')
     return dict(
@@ -70,15 +73,6 @@ def nodejs():
         author_email=author_email,
         license=license
     )
-
-
-def _parse_name():
-    _, name = os.path.split(os.getcwd())
-    return name
-
-
-def _parse_username():
-    return os.environ.get('USER') or os.environ.get('USERNAME')
 
 
 def _parse_homepage(repository):

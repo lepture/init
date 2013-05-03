@@ -6,19 +6,29 @@ TEMPLATE_DIR = os.environ.get(
     'INIT_TEMPLATE', os.path.expanduser('~/.init-template')
 )
 
-import imp
+import sys
 import shutil
 import datetime
-from terminal import color
+from terminal import color, prompt, confirm
 from terminal.builtin import log
-from . import license
-from .shell import Git
+from . import license, git, prompts
 from .template import Template
 
 try:
     import simplejson as json
 except ImportError:
     import json
+
+import yaml
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
+
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 
 __all__ = ('install', 'init', 'templates')
@@ -30,12 +40,14 @@ def install(name):
     """
     folder = os.path.join(TEMPLATE_DIR, name)
     if os.path.exists(folder):
-        origin = Git.origin(folder)
+        origin = git.origin(folder)
         if not origin:
             raise RuntimeError('%s has no origin remote' % name)
-        return Git.pull(cwd=folder)
+        log.info('git pull', color.cyan(origin))
+        return git.pull(cwd=folder)
     url = _url(name)
-    return Git.clone(url, folder)
+    log.info('git clone', color.cyan(url))
+    return git.clone(url, folder)
 
 
 def init(name):
@@ -55,14 +67,34 @@ def init(name):
             # prompt for user, and get data from user
             # return data
     """
+    folder = os.path.join(TEMPLATE_DIR, name)
+    if not os.path.exists(folder):
+        install(name)
+
     log.info('loading', color.cyan(name))
 
-    folder = os.path.join(TEMPLATE_DIR, name)
-    m = imp.load_source('template', os.path.join(folder, 'template.py'))
+    template = None
+    for name in ['template.yml', 'template.yaml', 'template']:
+        template = os.path.join(folder, name)
+        if os.path.exists(template):
+            break
+
+    if not template:
+        log.error('template not found.')
+        return
+
+    config = _get_config(template)
+
+    if 'register' in config and os.path.exists(config['register']):
+        q = confirm(
+            'This is not an empty directory, do you want to rewrite it'
+        )
+        if not q:
+            return sys.exit(2)
 
     # a blank line for seprating the logs and prompts
     print('')
-    data = m.main()
+    data = process_prompts(config)
     print('')
 
     # write from templates
@@ -72,18 +104,15 @@ def init(name):
     if 'license' in data:
         process_license(data['license'], data)
 
-    # process via config.json
-    configfile = os.path.join(folder, 'config.json')
-    if not os.path.exists(configfile):
-        return
-
-    f = open(configfile)
-    config = json.load(f)
-    f.close()
-
     process_rename(config.get('rename', {}), data)
 
-    #TODO: chmod
+    footer = config.get('footer')
+    if isinstance(footer, (list, tuple)):
+        footer = '\n'.join(footer)
+
+    if footer:
+        print('\n%s\n' % footer)
+    return
 
 
 def templates():
@@ -105,6 +134,35 @@ def templates():
                 ret.append('%s/%s' % (name, subname))
 
     return ret
+
+
+def process_prompts(config):
+    data = {}
+
+    if 'language' in config and hasattr(prompts, config['language']):
+        fn = getattr(prompts, config['language'])
+        data = fn()
+
+    if 'prompt' not in config:
+        return data
+
+    defaults = prompts.defaults()
+    questions = config['prompt']
+    for key in questions:
+        value = questions[key]
+        default = None
+        if isinstance(value, dict):
+            message = value.get('message')
+            default = value.get('default')
+        else:
+            message = value
+
+        if default and '{{' in default:
+            default = Template(default).render(**defaults)
+
+        data[key] = prompt(message, default=default)
+
+    return data
 
 
 def process_write(rootdir, data):
@@ -175,6 +233,62 @@ def _url(name):
 
 
 def _is_template(filepath):
-    if not os.path.exists(os.path.join(filepath, 'template.py')):
-        return False
-    return os.path.exists(os.path.join(filepath, 'root'))
+    dirs = os.listdir(filepath)
+    return 'template.yml' in dirs or 'template.yaml' in dirs
+
+
+def _get_config(template):
+    f = open(template)
+    config = yaml.load(f, _InitLoader)
+    f.close()
+    return config
+
+
+class _InitLoader(Loader):
+    """
+    A YAML loader that loads mappings into ordered dictionaries.
+
+    Gist from: https://gist.github.com/enaeseth/844388
+    """
+
+    def __init__(self, *args, **kwargs):
+        Loader.__init__(self, *args, **kwargs)
+
+        self.add_constructor(
+            'tag:yaml.org,2002:map', type(self).construct_yaml_map
+        )
+        self.add_constructor(
+            'tag:yaml.org,2002:omap', type(self).construct_yaml_map
+        )
+
+    def construct_yaml_map(self, node):
+        data = OrderedDict()
+        yield data
+        value = self.construct_mapping(node)
+        data.update(value)
+
+    def construct_mapping(self, node, deep=False):
+        if isinstance(node, yaml.MappingNode):
+            self.flatten_mapping(node)
+        else:
+            raise yaml.constructor.ConstructorError(
+                None, None,
+                'expected a mapping node, but found %s' % node.id,
+                node.start_mark
+            )
+
+        mapping = OrderedDict()
+        for key_node, value_node in node.value:
+            key = self.construct_object(key_node, deep=deep)
+            try:
+                hash(key)
+            except TypeError, exc:
+                raise yaml.constructor.ConstructorError(
+                    'while constructing a mapping',
+                    node.start_mark,
+                    'found unacceptable key (%s)' % exc,
+                    key_node.start_mark
+                )
+            value = self.construct_object(value_node, deep=deep)
+            mapping[key] = value
+        return mapping

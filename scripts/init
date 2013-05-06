@@ -13,8 +13,8 @@ class InitCommand(Command):
     def print_help(self):
         super(InitCommand, self).print_help()
         print(terminal.cyan('  Examples:\n'))
-        print('    $ init flask')
-        print('    $ init lepture/template-flask')
+        print('    $ init python')
+        print('    $ init init-template/python')
         print('')
         url = 'https://github.com/init-template'
         print('  Find templates on %s\n' % terminal.underline(url))
@@ -39,7 +39,7 @@ program.add_log_options()
 @program.action
 def license(year=None, organization=None):
     """
-    Show available licenses.
+    show available licenses.
 
     :param year: the copyright year
     :param organization: the organization name of the project
@@ -76,7 +76,7 @@ def license(year=None, organization=None):
 @program.action
 def install():
     """
-    Install a template to ~/.init-template/
+    install a template to ~/.init-template/
     """
     if not program.args:
         return log.error('missing arguments')
@@ -87,7 +87,7 @@ def install():
 @program.action
 def update():
     """
-    Update templates in ~/.init-template/
+    update templates in ~/.init-template/
     """
     if program.args:
         names = program.args

@@ -8,22 +8,22 @@ from terminal.builtin import Command, log
 
 from init import cli, info
 
+url = 'https://github.com/init-template'
+help_footer = '\n'.join([
+    '  %s' % terminal.cyan('Examples:'),
+    '',
+    '    $ init python',
+    '    $ init init-template/python',
+    '',
+    '  Find templates on %s' % terminal.underline(url),
+])
 
-class InitCommand(Command):
-    def print_help(self):
-        super(InitCommand, self).print_help()
-        print(terminal.cyan('  Examples:\n'))
-        print('    $ init python')
-        print('    $ init init-template/python')
-        print('')
-        url = 'https://github.com/init-template'
-        print('  Find templates on %s\n' % terminal.underline(url))
 
-
-program = InitCommand(
+program = Command(
     'init',
     description='init a project',
     version=info.VERSION,
+    help_footer=help_footer,
 )
 
 

@@ -1,3 +1,4 @@
+import os
 from nose.tools import raises
 from init.template import Template
 
@@ -14,10 +15,22 @@ def test_dict_value():
 
 
 def test_attr_value():
-    t = Template('hello {{foo.bar}}')
+    t = Template('hello {{foo.bar.bar}}')
 
     class Foo(object):
-        def __init__(self):
-            self.bar = 'baz'
+        def __init__(self, bar):
+            self.bar = bar
 
-    assert t.render(foo=Foo()) == 'hello baz'
+    foo = Foo(Foo('baz'))
+    assert t.render(foo=foo) == 'hello baz'
+
+    t = Template('hello {{foo.bar.baz}}')
+    assert t.render(foo=foo) == 'hello {{foo.bar.baz}}'
+
+
+def test_write():
+    t = Template('hello {{foo.bar}}')
+    t.write('tmp/test_write.txt', foo={'bar': 'baz'})
+    assert os.path.exists('tmp/test_write.txt')
+    os.remove('tmp/test_write.txt')
+    os.rmdir('tmp')

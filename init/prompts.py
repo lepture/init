@@ -57,7 +57,7 @@ def nodejs():
     home = _parse_homepage(repository)
     homepage = prompt('Homepage', default=home)
 
-    issues = prompt('Issue tracker', default='%/issues' % home)
+    issues = prompt('Issue tracker', default='%s/issues' % home)
     author_name = prompt('Author name', default=data['author_name'])
     author_email = prompt('Author email', default=data['author_email'])
 

@@ -199,7 +199,7 @@ def process_license(name, data):
     if 'project' not in data and 'name' in data:
         data['project'] = data['name']
 
-    content = license.parse(name, **data)
+    content = license.parse(name, data)
     if not content:
         return log.warn('license not found', color.cyan(ORIGIN_NAME))
     f = open('LICENSE', 'w')

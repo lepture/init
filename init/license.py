@@ -39,7 +39,7 @@ def licenses():
     return map(lambda name: name[:-4], files)
 
 
-def parse(name, **kwargs):
+def parse(name, data):
     """
     Parse the license, fill data into the license.
     """
@@ -47,4 +47,4 @@ def parse(name, **kwargs):
     if not filepath:
         return None
     t = Template(filepath=filepath)
-    return t.render(**kwargs)
+    return t.render(**data)

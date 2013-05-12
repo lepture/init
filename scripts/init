@@ -59,11 +59,10 @@ def license(year=None, organization=None):
 
     if args:
         name = args[0]
-        data = license.parse(
-            name,
-            year=year,
-            organization=organization,
-        )
+        data = license.parse(name, {
+            'year': year,
+            'organization': organization,
+        })
         if not data:
             print('Not Found')
             return

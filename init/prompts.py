@@ -63,7 +63,7 @@ def nodejs():
 
     license = prompt('License', default='MIT')
     return dict(
-        name=project,
+        project=project,
         description=description,
         version=version,
         repository=repository,

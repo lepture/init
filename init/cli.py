@@ -105,6 +105,7 @@ def init(name):
         process_license(data['license'], data)
 
     process_rename(config.get('rename', {}), data)
+    process_mkdir(config.get('mkdir', []), data)
 
     footer = config.get('footer')
     if isinstance(footer, (list, tuple)):
@@ -224,6 +225,21 @@ def process_rename(renames, data):
         else:
             log.info('renaming', c(k), 'to', c(v))
             shutil.move(k, v)
+
+
+def process_mkdir(mkdirs, data):
+    if not mkdirs:
+        return
+    for v in mkdirs:
+        t = Template(v)
+        v = t.render(**data)
+        if '{{' in v:
+            log.error('error mkdir', color.cyan(v))
+        elif os.path.exists(v):
+            log.warn('exits directory', color.cyan(v))
+        else:
+            log.info('mkdir', color.cyan(v))
+            os.makedirs(v)
 
 
 def _url(name):

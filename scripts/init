@@ -65,7 +65,7 @@ def license(year=None, organization=None):
         })
         if not data:
             print('Not Found')
-            return
+            return sys.exit()
         sys.stdout.write(data)
     else:
         print('\t'.join(license.licenses()))
@@ -80,7 +80,11 @@ def install():
     if not program.args:
         return log.error('missing arguments')
     name = program.args[0]
-    return cli.install(name)
+    cli.install(name)
+    if log.error_count:
+        # has error
+        return sys.exit(1)
+    return sys.exit()
 
 
 @program.action
@@ -99,7 +103,7 @@ def update():
         except RuntimeError as e:
             log.error(e)
 
-    sys.exit(0)
+    return sys.exit(0)
 
 
 try:
